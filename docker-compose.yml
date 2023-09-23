@@ -1,0 +1,180 @@
+version: '3'
+services:
+  users-mysql-container:
+    image: mysql:8.0
+    container_name: users-mysql-container
+    networks:
+      - nosql-project-network
+    environment:
+      MYSQL_ROOT_PASSWORD: hrmad
+      MYSQL_DATABASE: db-users
+      MYSQL_USER: hdawwas
+      MYSQL_PASSWORD: hrmad
+    ports:
+      - "3307:3306"
+
+  BootstrapingNode:
+    image: bootstrapingnode 
+    container_name: BootstrapingNode
+    command: sh -c "sleep 40 && java -jar BootstrapingNode.jar"
+    networks:
+      - nosql-project-network
+    ports:
+      - "8091:8080"
+    depends_on:
+      - users-mysql-container
+
+
+  NoSQLStorageNode1:
+    image: nosqlstoragenode
+    environment:
+      - NODE_NAME=NoSQLStorageNode1
+    container_name: NoSQLStorageNode1
+    command: sh -c "sleep 40 && java -jar NoSQLStorageNodeApp.jar"
+    ports:
+      - "8081:8080"
+    networks:
+      - nosql-project-network
+    volumes:
+      - ./NoSQLStorageNode1_data:/usr/src/app/data 
+
+  NoSQLStorageNode2:
+    image: nosqlstoragenode
+    environment:
+      - NODE_NAME=NoSQLStorageNode2
+    container_name: NoSQLStorageNode2
+    command: sh -c "sleep 40 && java -jar NoSQLStorageNodeApp.jar"
+    ports:
+      - "8082:8080"
+    networks:
+      - nosql-project-network
+    volumes:
+      - ./NoSQLStorageNode2_data:/usr/src/app/data 
+
+
+  NoSQLStorageNode3:
+    image: nosqlstoragenode
+    environment:
+      - NODE_NAME=NoSQLStorageNode3
+    container_name: NoSQLStorageNode3
+    command: sh -c "sleep 40 && java -jar NoSQLStorageNodeApp.jar"
+    ports:
+      - "8083:8080"
+    networks:
+      - nosql-project-network
+    volumes:
+      - ./NoSQLStorageNode3_data:/usr/src/app/data 
+
+  NoSQLStorageNode4:
+    image: nosqlstoragenode
+    environment:
+      - NODE_NAME=NoSQLStorageNode4
+    container_name: NoSQLStorageNode4
+    command: sh -c "sleep 40 && java -jar NoSQLStorageNodeApp.jar"
+    ports:
+      - "8084:8080"
+    networks:
+      - nosql-project-network
+    volumes:
+      - ./NoSQLStorageNode4_data:/usr/src/app/data 
+
+  NoSQLStorageNode5:
+    image: nosqlstoragenode
+    environment:
+      - NODE_NAME=NoSQLStorageNode5
+    container_name: NoSQLStorageNode5
+    command: sh -c "sleep 40 && java -jar NoSQLStorageNodeApp.jar"
+    ports:
+      - "8085:8080"
+    networks:
+      - nosql-project-network
+    volumes:
+      - ./NoSQLStorageNode5_data:/usr/src/app/data 
+
+  NoSQLStorageNode6:
+    image: nosqlstoragenode
+    environment:
+      - NODE_NAME=NoSQLStorageNode6
+    container_name: NoSQLStorageNode6
+    command: sh -c "sleep 40 && java -jar NoSQLStorageNodeApp.jar"
+    ports:
+      - "8086:8080"
+    networks:
+      - nosql-project-network
+    volumes:
+      - ./NoSQLStorageNode6_data:/usr/src/app/data 
+
+  NoSQLStorageNode7:
+    image: nosqlstoragenode
+    environment:
+      - NODE_NAME=NoSQLStorageNode7
+    container_name: NoSQLStorageNode7
+    command: sh -c "sleep 40 && java -jar NoSQLStorageNodeApp.jar"
+    ports:
+      - "8087:8080"
+    networks:
+      - nosql-project-network
+    volumes:
+      - ./NoSQLStorageNode7_data:/usr/src/app/data 
+
+  NoSQLStorageNode8:
+    image: nosqlstoragenode
+    environment:
+      - NODE_NAME=NoSQLStorageNode8
+    container_name: NoSQLStorageNode8
+    command: sh -c "sleep 40 && java -jar NoSQLStorageNodeApp.jar"
+    ports:
+      - "8088:8080"
+    networks:
+      - nosql-project-network
+    volumes:
+      - ./NoSQLStorageNode8_data:/usr/src/app/data 
+
+  LoadBalancer:
+    image: loadbalancer
+    container_name: LoadBalancer
+    ports:
+      - "8099:8080"
+    networks:
+      - nosql-project-network
+    volumes:
+      - ./NodesGroup.json:/usr/src/app/NodesGroup.json 
+
+
+
+  UserInteractionService:
+    image: userinteractiveservice
+    container_name: UserInteractionService
+    command: sh -c "sleep 50 && java -jar UserInteractiveServiceApp.jar"
+    ports:
+      - "8080:8080"
+    networks:
+      - nosql-project-network
+    depends_on:
+      - users-mysql-container
+      - BootstrapingNode
+      - NoSQLStorageNode1
+      - NoSQLStorageNode2
+      - NoSQLStorageNode3
+      - NoSQLStorageNode4
+      - NoSQLStorageNode5
+      - NoSQLStorageNode6
+      - NoSQLStorageNode7
+      - NoSQLStorageNode8
+      - redis
+    stdin_open: true
+    tty: true
+
+
+  redis:
+    image: "redis:alpine"
+    container_name: redis
+    networks:
+      - nosql-project-network
+    ports:
+      - "6379:6379"
+
+
+networks:
+  nosql-project-network:
+    driver: bridge
