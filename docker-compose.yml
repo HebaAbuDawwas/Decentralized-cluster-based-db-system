@@ -142,9 +142,9 @@ services:
 
 
 
-  UserInteractionService:
+  UserInteractiveService:
     image: userinteractiveservice
-    container_name: UserInteractionService
+    container_name: UserInteractiveService
     command: sh -c "sleep 50 && java -jar UserInteractiveServiceApp.jar"
     ports:
       - "8080:8080"

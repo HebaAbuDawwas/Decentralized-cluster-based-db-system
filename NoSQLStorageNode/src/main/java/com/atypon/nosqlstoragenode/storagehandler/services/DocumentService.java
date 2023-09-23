@@ -35,7 +35,7 @@ public class DocumentService {
         }
 
         if (!schema.validateDocument(jsonDocument)) {
-            throw new RuntimeException("Document validation failed");
+            throw new RuntimeException("Document schema validation failed");
         }
 
         JSONObject document = new JSONObject(jsonDocument);
@@ -230,7 +230,7 @@ public class DocumentService {
         }
 
         if (!schema.validateDocument(jsonDocument)) {
-            throw new RuntimeException("Document validation failed");
+            throw new RuntimeException("Document schema validation failed");
         }
 
         JSONObject document = new JSONObject(jsonDocument);
