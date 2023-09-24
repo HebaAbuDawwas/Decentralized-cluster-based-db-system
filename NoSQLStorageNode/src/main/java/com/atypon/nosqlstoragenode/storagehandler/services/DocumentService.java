@@ -3,11 +3,14 @@ package com.atypon.nosqlstoragenode.storagehandler.services;
 
 import com.atypon.nosqlstoragenode.storagehandler.models.Index;
 import com.atypon.nosqlstoragenode.storagehandler.models.JsonSchema;
+import com.atypon.nosqlstoragenode.storagehandler.models.UpdatePropertiesRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -54,7 +57,27 @@ public class DocumentService {
         saveDocumentToDatabase(dbName, jsonDocument, docId);
         return docId;
     }
+    public String getDocumentAffinity(String docId){
 
+        String loadBalancerURI = "http://LoadBalancer:8099/get-document-affinity";
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(docId, headers);
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(loadBalancerURI, HttpMethod.POST, requestEntity, String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                System.out.println("from load balancer");
+                return response.getBody();
+            } else {
+                throw new RuntimeException("Failed to get node. Reason: " + response.getBody());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("An error occurred while calling the API: " + e.getMessage());
+        }
+
+    }
 
     public Map<String, Object> readDocumentProperties(String dbName, String documentId, List<String> propertiesToRead) throws IOException {
         Path documentPath = Paths.get(BASE_DIR + dbName + "/documents/" + documentId + ".json");
@@ -246,5 +269,24 @@ public class DocumentService {
             }
         }
         saveDocumentToDatabase(dbName, jsonDocument, documentId);
+    }
+
+    public void forwardRequestToAffinity(String documentId, UpdatePropertiesRequest propertiesToUpdate, String documentAffinity, String dbName) {
+        try {
+            String url = "http://" + documentAffinity + ":8080/database/" + dbName + "/document/" + documentId + "/write-properties";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            RestTemplate restTemplate = new RestTemplate();
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            String jsonPropertiesToUpdate = objectMapper.writeValueAsString(propertiesToUpdate.getProperties());
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonPropertiesToUpdate, headers);
+            restTemplate.put(url, entity);
+            System.out.println("Properties updated.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Failed to update properties: " + e.getMessage());
+        }
     }
 }

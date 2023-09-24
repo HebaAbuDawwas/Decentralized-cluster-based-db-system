@@ -82,8 +82,13 @@ public class DocumentController {
                 documentService.updateDocumentPropertiesWithNewId(dbName, documentId, new JSONObject(propertiesToUpdate.getProperties()), updatedDocumentId);
 
             } else {
+                String documentAffinity = documentService.getDocumentAffinity(documentId);
+                if(System.getenv("NODE_NAME").equals(documentAffinity)){
                 String updatedDocId = documentService.updateDocumentProperties(dbName, documentId, new JSONObject(propertiesToUpdate.getProperties()));
-                broadcastService.sendBroadcastUpdateDocumentProperties(dbName, documentId, propertiesToUpdate, updatedDocId);
+                broadcastService.sendBroadcastUpdateDocumentProperties(dbName, documentId, propertiesToUpdate, updatedDocId);}
+                else{
+                    documentService.forwardRequestToAffinity(documentId, propertiesToUpdate, documentAffinity,dbName);
+                }
             }
             return new ResponseEntity<>(HttpStatus.OK);
 
