@@ -50,7 +50,7 @@ public class DocumentService {
                 Index index = Index.loadFromDisk(dbName, property);
                 if (index != null) {
                     index.addDocumentId(propertyValue, docId);
-                    index.saveToDisk(dbName);
+                    index.saveToDisk(dbName,property);
                 }
             }
         }
@@ -144,7 +144,7 @@ public class DocumentService {
             Index index = Index.loadFromDisk(dbName, propertyName);
             if (index != null) {
                 index.removeDocumentId(propertyValue, documentId);
-                index.saveToDisk(dbName);
+                index.saveToDisk(dbName,propertyName);
             } else {
                 System.err.println("Index not found for property: " + propertyName);
             }
@@ -264,7 +264,7 @@ public class DocumentService {
                 Index index = Index.loadFromDisk(dbName, property);
                 if (index != null) {
                     index.addDocumentId(propertyValue, documentId);
-                    index.saveToDisk(dbName);
+                    index.saveToDisk(dbName,property);
                 }
             }
         }

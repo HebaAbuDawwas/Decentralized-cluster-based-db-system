@@ -121,8 +121,8 @@ public class UserInteractiveServiceApplication {
                     System.out.println("Invalid choice. Try again.");
                     continue;
             }
-            getAllDocuments(database,assignedNode);
             while (true) {
+                getAllDocuments(database,assignedNode);
                 System.out.println("Choose an option to do: ");
                 System.out.println("1. create document");
                 System.out.println("2. read document properties");
@@ -190,7 +190,6 @@ public class UserInteractiveServiceApplication {
                 } else if (field.getValue().isNumber()) {
                     value = field.getValue().numberValue();
                 } else {
-                    // For simplicity, convert other types to String
                     value = field.getValue().toString();
                 }
                 updatePropertiesRequest.setProperty(key, value);
@@ -207,8 +206,12 @@ public class UserInteractiveServiceApplication {
         RestTemplate restTemplate = new RestTemplate();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> entity = new HttpEntity<>(jsonDocument, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-        System.out.println(response.getBody());
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            System.out.println(response.getBody());
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 
     private static void readDocumentProperties(String docId, String node, String dbName, List<String> propertiesToRead) {
@@ -223,10 +226,8 @@ public class UserInteractiveServiceApplication {
                 .queryParam("propertiesToRead", propertiesString)
                 .build();
 
-        // Make the GET request
         ResponseEntity<Map> response = restTemplate.getForEntity(uriComponents.toUri(), Map.class);
 
-        // Print the response body
         System.out.println(response.getBody());
     }
 

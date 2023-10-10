@@ -1,6 +1,9 @@
 package com.atypon.nosqlstoragenode.storagehandler.models;
 
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -17,18 +20,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Index {
     private static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-    private final Map<Integer, CopyOnWriteArrayList<String>> hashTable;
-    private UUID databaseId;
-    private String propertyName;
+    private final Map<String, CopyOnWriteArrayList<String>> hashTable;
 
     public Index() {
         this.hashTable = new ConcurrentHashMap<>();
     }
 
-    public Index(UUID databaseId, String propertyName) {
-        this.databaseId = databaseId;
-        this.propertyName = propertyName;
-        this.hashTable = new ConcurrentHashMap<>();
+    @JsonCreator
+    public Index(@JsonProperty("hashTable") Map<String, CopyOnWriteArrayList<String>> hashTable) {
+        this.hashTable = new ConcurrentHashMap<>(hashTable);
     }
 
     public static Index loadFromDisk(String dbName, String propertyName) {
@@ -42,34 +42,24 @@ public class Index {
         }
     }
 
-    private int hashFunction(String value) {
-        return value.hashCode();
-    }
 
     public void addDocumentId(String propertyValue, String documentId) {
-        int hashValue = hashFunction(propertyValue);
-        hashTable.putIfAbsent(hashValue, new CopyOnWriteArrayList<>());
-        hashTable.get(hashValue).add(documentId);
-    }
-
-    public List<String> getDocumentIds(String propertyValue) {
-        int hashValue = hashFunction(propertyValue);
-        return hashTable.getOrDefault(hashValue, new CopyOnWriteArrayList<>());
+        hashTable.putIfAbsent(propertyValue, new CopyOnWriteArrayList<>());
+        hashTable.get(propertyValue).add(documentId);
     }
 
     public void removeDocumentId(String propertyValue, String documentId) {
-        int hashValue = hashFunction(propertyValue);
-        if (hashTable.containsKey(hashValue)) {
-            hashTable.get(hashValue).remove(documentId);
-            if (hashTable.get(hashValue).isEmpty()) {
-                hashTable.remove(hashValue);
+        if (hashTable.containsKey(propertyValue)) {
+            hashTable.get(propertyValue).remove(documentId);
+            if (hashTable.get(propertyValue).isEmpty()) {
+                hashTable.remove(propertyValue);
             }
         }
     }
 
-    public void saveToDisk(String dbName) {
+    public void saveToDisk(String dbName, String propertyName) {
         Path indexPath = Paths.get("/usr/src/app/data/databases", dbName, "indexes");
-        indexPath = indexPath.resolve(propertyName + "_index.json");  // Note the .json extension
+        indexPath = indexPath.resolve(propertyName + "_index.json");
 
         File indexFile = indexPath.toFile();
         if (!indexFile.getParentFile().exists() && !indexFile.getParentFile().mkdirs()) {
@@ -85,14 +75,7 @@ public class Index {
         }
     }
 
-    public UUID getDatabaseId() {
-        return databaseId;
+    public Map<String, CopyOnWriteArrayList<String>> getHashTable() {
+        return this.hashTable;
     }
-
-
-    @Override
-    public String toString() {
-        return "Index{" + "databaseId=" + databaseId + ", propertyName='" + propertyName + '\'' + ", hashTable=" + hashTable + '}';
-    }
-
 }

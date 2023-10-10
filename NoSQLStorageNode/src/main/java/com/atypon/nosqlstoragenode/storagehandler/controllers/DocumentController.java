@@ -83,7 +83,9 @@ public class DocumentController {
 
             } else {
                 String documentAffinity = documentService.getDocumentAffinity(documentId);
+                System.out.println("document affinity : " + documentAffinity);
                 if(System.getenv("NODE_NAME").equals(documentAffinity)){
+                    System.out.println("yes this is affinity");
                 String updatedDocId = documentService.updateDocumentProperties(dbName, documentId, new JSONObject(propertiesToUpdate.getProperties()));
                 broadcastService.sendBroadcastUpdateDocumentProperties(dbName, documentId, propertiesToUpdate, updatedDocId);}
                 else{

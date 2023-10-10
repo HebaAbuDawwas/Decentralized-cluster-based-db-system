@@ -40,8 +40,8 @@ public class DatabaseService {
             fileWriter.write(schema.getRawSchema());
 
             for (String property : schema.getProperties()) {
-                Index index = new Index(metadata.getDbUUID(), property);
-                index.saveToDisk(dbName);
+                Index index = new Index();
+                index.saveToDisk(dbName,property);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to save the schema to file: " + e.getMessage());
